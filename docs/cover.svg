@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1f33"/>
+      <stop offset="0.55" stop-color="#0d3b4f"/>
+      <stop offset="1" stop-color="#0a5c5c"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#27e0a6"/>
+      <stop offset="1" stop-color="#34d1f0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#bg)"/>
+
+  <!-- top label -->
+  <text x="80" y="92" fill="#7fd9d0" font-size="24" letter-spacing="3" font-weight="600">CONCIERGE AGENTS TRACK · VIBE CODING CAPSTONE</text>
+
+  <!-- title -->
+  <text x="78" y="220" fill="#ffffff" font-size="108" font-weight="800" letter-spacing="-2">FeasiblePlan</text>
+
+  <!-- tagline -->
+  <text x="82" y="282" fill="#cfe9e6" font-size="34" font-weight="500">Itineraries you can <tspan fill="#27e0a6" font-weight="700">actually run</tspan> — doable, not just plausible.</text>
+
+  <!-- plan -> verify -> repair loop chips -->
+  <g font-size="24" font-weight="600">
+    <rect x="82" y="330" rx="22" width="170" height="46" fill="#13354a" stroke="#2f6f7e"/>
+    <text x="167" y="361" fill="#bfe9ff" text-anchor="middle">Planner (LLM)</text>
+    <text x="268" y="361" fill="#7fd9d0" text-anchor="middle">→</text>
+    <rect x="290" y="330" rx="22" width="200" height="46" fill="#13354a" stroke="#2f6f7e"/>
+    <text x="390" y="361" fill="#bfe9ff" text-anchor="middle">Verifier (rules)</text>
+    <text x="508" y="361" fill="#7fd9d0" text-anchor="middle">→</text>
+    <rect x="530" y="330" rx="22" width="150" height="46" fill="#13354a" stroke="#2f6f7e"/>
+    <text x="605" y="361" fill="#bfe9ff" text-anchor="middle">Repair</text>
+    <text x="700" y="361" fill="#27e0a6" text-anchor="start" font-size="22">↺ until feasible</text>
+  </g>
+
+  <!-- constraint chips -->
+  <g font-size="22" fill="#bcd6d3">
+    <text x="82" y="430">checks:  🕘 open hours   ☔ weather   🚶 travel time   ¥ budget   🗓 day window</text>
+  </g>
+
+  <!-- BEFORE / AFTER panel -->
+  <g>
+    <text x="82" y="520" fill="#9fb9b6" font-size="26" font-weight="600">FEASIBILITY  (verify → repair loop)</text>
+
+    <!-- BEFORE -->
+    <text x="82" y="566" fill="#ff8f8f" font-size="26" font-weight="600">before</text>
+    <rect x="220" y="546" width="760" height="26" rx="13" fill="#13354a"/>
+    <rect x="220" y="546" width="304" height="26" rx="13" fill="#e0556a"/>
+    <text x="998" y="567" fill="#ff8f8f" font-size="26" font-weight="700">40%</text>
+
+    <!-- AFTER -->
+    <text x="82" y="616" fill="#27e0a6" font-size="26" font-weight="600">after</text>
+    <rect x="220" y="596" width="760" height="26" rx="13" fill="#13354a"/>
+    <rect x="220" y="596" width="760" height="26" rx="13" fill="url(#bar)"/>
+    <text x="998" y="617" fill="#27e0a6" font-size="26" font-weight="800">100%</text>
+  </g>
+
+  <!-- footer -->
+  <text x="1118" y="640" fill="#7fd9d0" font-size="22" text-anchor="end" font-weight="600">github.com/cncgl · FeasiblePlan</text>
+</svg>

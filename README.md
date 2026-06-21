@@ -57,12 +57,12 @@ FeasiblePlanは **Verifierエージェント** が各ステップを実データ
 ## 提出チェックリスト
 
 - [x] コンペに Join
-- [ ] トラック決定（**Concierge Agents** 予定）
-- [ ] エージェント実装（ADK / Agents CLI / Antigravity）
-- [ ] ≥3コンセプトを実証（Antigravity / Agent skills / Security / Deployability …）
-- [ ] デモ or 公開リポジトリ＋手順
-- [ ] 5分動画（YouTube）
-- [ ] Writeup（≤2,500語・カバー画像）→ **Submit**
+- [x] トラック決定（**Concierge Agents**）
+- [x] エージェント実装（ADK：orchestrator＋planner(ADK LlmAgent)＋verifier＋profiler）
+- [x] ≥3コンセプトを実証（multi-agent(ADK) / Tool use / Memory / **Security・HITL** / **Eval**）
+- [x] 公開リポジトリ＋手順（このREADME。デプロイは任意・未）
+- [ ] 5分動画（YouTube）… 台本済 → [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md)（撮影/UP は要作業）
+- [ ] Writeup（≤2,500語・カバー画像）→ **Submit** … 下書き＋カバー済 → [docs/WRITEUP.md](docs/WRITEUP.md) / [docs/cover.png](docs/cover.png)（最終Submit は要作業）
 
 ## setup
 
