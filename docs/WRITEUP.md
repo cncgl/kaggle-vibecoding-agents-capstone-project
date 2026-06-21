@@ -1,7 +1,7 @@
 # FeasiblePlan — a travel concierge that returns itineraries you can *actually run*
 
 > **Track:** Concierge Agents · **Author:** cncgl (concigel@gmail.com)
-> **Repo:** https://github.com/cncgl/kaggle-vibecoding-agents-capstone-project · **Video:** _<YouTube link>_
+> **Repo:** https://github.com/cncgl/kaggle-vibecoding-agents-capstone-project · **Video:** (paste YouTube link)
 > **Cover image:** `docs/cover.svg` (export to PNG)
 
 ## The problem: plausible ≠ doable
@@ -118,14 +118,28 @@ back safely so the demo never crashes. The whole system can run **completely off
 - **Honest demo.** We withhold the weather from the Planner so the failure→repair story
   is real, not staged.
 
+## A demo you can use — and deploy
+
+The same agent runs behind a one-page web UI (FastAPI, no build step): pick a day, hit
+**Plan my day**, and watch the raw plan's problems (red), the auto-repairs (green), the
+verified itinerary, and a **Confirm & Book** human-in-the-loop button — all on one
+screen.
+
+![FeasiblePlan web UI](ui.png)
+
+Because the HTML and the API ship in **one container** (`Dockerfile`), it deploys as-is —
+`docker run -p 8000:8000 feasibleplan`, or `gcloud run deploy feasibleplan --source .`
+(Cloud Run) — which is the **Deployability** concept, demonstrable live.
+
 ## How to run it (public repo + setup)
 
-No deployment required — the repository is public and runs in three lines:
+No deployment required — the repository is public and runs in a few lines:
 
 ```bash
 uv sync
-uv run python -m kaggle_vibecoding_agents_capstone_project.agent   # plan → verify → repair + booking gate
+uv run python -m kaggle_vibecoding_agents_capstone_project.agent   # CLI: plan → verify → repair + booking gate
 uv run python -m kaggle_vibecoding_agents_capstone_project.eval    # BEFORE→AFTER feasibility
+uv run python -m kaggle_vibecoding_agents_capstone_project.web     # web UI at http://localhost:8000
 ```
 
 It runs **offline with zero configuration** (deterministic mock). To use a real LLM, add

@@ -4,11 +4,12 @@
 **Goal:** make the "plausible vs. doable" gap *visible*, then show the agent close it.
 
 Recording tips
-- Terminal at large font (≥ 18pt), dark theme, window ~110 cols.
-- For a **snappy demo** use the deterministic mock (`FEASIBLEPLAN_BACKEND=mock`) — instant,
-  reproducible, same story. Show the **local LLM** (`qwen/qwen3.6-27b`) or **Gemini** run
-  once to prove it's real, then cut. (27B takes ~1–2 min/run — record, then speed up/cut.)
-- Pre-clear the screen; pre-stage the two commands. Capture exit code 0 once for trust.
+- **Main demo is the web UI** (`uv run python -m kaggle_vibecoding_agents_capstone_project.web`
+  → http://localhost:8000). Browser zoom ~110%, dark theme.
+- For a **snappy, reproducible** UI use the deterministic mock (`FEASIBLEPLAN_BACKEND=mock`) —
+  instant. Show a **local LLM** (`qwen/qwen3.6-27b`) or **Gemini** run once to prove it's
+  real, then cut. (27B takes ~1–2 min/plan — record, then speed up/cut.)
+- Keep a terminal handy for the eval (Scene 4); large font (≥ 18pt).
 
 ---
 
@@ -38,25 +39,28 @@ Recording tips
 > Crucially, the Planner is never told the weather — so, like a real LLM, it can make a
 > genuine mistake. Catching that mistake is the whole point.
 
-## Scene 3 — Live demo: plan → verify → repair (1:10–2:40)
+## Scene 3 — Live demo in the web UI (1:10–2:40)
 
-**On screen:** Run `uv run python -m kaggle_vibecoding_agents_capstone_project.agent`.
-Let the output appear. Cursor-highlight: the **Planner backend** line, the **Initial
-violations**, the **Repairs**, and the **feasible** final itinerary.
-
-**Narration:**
-> Let's run it. First, the Planner drafts a day — and the Verifier immediately flags two
-> real problems: the National Museum is closed on Monday, and an outdoor stop collides
-> with afternoon rain. Watch the repair loop: the Orchestrator hands those violations
-> back, and the Planner swaps in an open, indoor alternative for each. One pass later —
-> a fully feasible itinerary, with a feasibility report showing exactly what was wrong
-> and how it was fixed. Not a plausible plan. A doable one.
-
-**On screen (2:20–2:40):** the `--- human-in-the-loop ---` prompt; type `y`.
+**On screen:** The web UI at localhost:8000. Pick **Monday**, keep the defaults, click
+**Plan my day**. The result panel fills in: a red "Raw plan had 2 problems" block, then
+a green "Auto-repaired" block, then the verified timeline with a **✓ feasible** badge.
+(Cursor-trace red → green → ✓.)
 
 **Narration:**
-> And because a concierge takes real actions, booking is gated: the agent asks for
-> explicit human approval before it commits. It never books on its own.
+> Let's plan a Monday in Kyoto. The Planner drafts a day — and instantly the Verifier
+> flags two real problems, in red: the National Museum is closed on Mondays, and an
+> outdoor stop collides with afternoon rain. Now watch: the repair loop hands those
+> violations back, and the Planner swaps in an open, indoor alternative for each — in
+> green. The result is a verified, feasible itinerary. Not a plausible plan. A doable
+> one — and you can see exactly what was wrong and how it was fixed.
+
+**On screen (2:20–2:40):** Click **Confirm & Book**; the "✓ Booked — contact redacted in
+logs" message appears.
+
+**Narration:**
+> And because a concierge takes real actions, booking is gated: it only happens when a
+> human clicks confirm — and the traveler's contact details are redacted from the logs.
+> The agent never books on its own.
 
 ## Scene 4 — Proof, not vibes: the eval (2:40–3:30)
 
@@ -99,7 +103,7 @@ Hold on the final table; highlight **40% → 100%**.
 ### Shot checklist
 - [ ] Problem slide with red "broken" stamps (Scene 1)
 - [ ] Architecture diagram still (Scene 2) — reuse `docs/cover.svg` / README diagram
-- [ ] Terminal: `agent` run, violations→repair→feasible, then `y` at booking gate (Scene 3)
+- [ ] **Web UI**: Monday → Plan my day → red problems → green repairs → ✓ feasible → Confirm & Book (Scene 3)
 - [ ] Terminal: `eval` run, 40%→100% table (Scene 4)
-- [ ] `.env` backend toggle + a `local (...)` run line (Scene 5)
+- [ ] Backend badge in the UI (mock / gemini / local) — or `.env` toggle (Scene 5)
 - [ ] Close card with repo URL + tagline (Scene 6)

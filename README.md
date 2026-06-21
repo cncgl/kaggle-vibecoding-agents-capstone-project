@@ -59,8 +59,8 @@ FeasiblePlanは **Verifierエージェント** が各ステップを実データ
 - [x] コンペに Join
 - [x] トラック決定（**Concierge Agents**）
 - [x] エージェント実装（ADK：orchestrator＋planner(ADK LlmAgent)＋verifier＋profiler）
-- [x] ≥3コンセプトを実証（multi-agent(ADK) / Tool use / Memory / **Security・HITL** / **Eval**）
-- [x] 公開リポジトリ＋手順（このREADME。デプロイは任意・未）
+- [x] ≥3コンセプトを実証（multi-agent(ADK) / Tool use / Memory / **Security・HITL** / **Eval** / **Deployability**）
+- [x] 公開リポジトリ＋手順（このREADME）＋ **Web UI（FastAPI）＋ Dockerfile（Cloud Run可）**
 - [ ] 5分動画（YouTube）… 台本済 → [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md)（撮影/UP は要作業）
 - [ ] Writeup（≤2,500語・カバー画像）→ **Submit** … 下書き＋カバー済 → [docs/WRITEUP.md](docs/WRITEUP.md) / [docs/cover.png](docs/cover.png)（最終Submit は要作業）
 
@@ -97,6 +97,26 @@ uv run python -m kaggle_vibecoding_agents_capstone_project.agent
 ```
 
 Planner は **gemini / local / mock** の3バックエンドを自動選択し、LLMが失敗しても**mockに自動フォールバック**（落ちない）。Verifier は常に決定論的で、実行可能性の判定は LLM に依存しない。
+
+## Web UI（デモ画面）
+
+ターミナルだけでなく、同じエージェントを**ブラウザUI**でも動かせます（FastAPI・ビルド工程なし）。
+
+```bash
+uv run python -m kaggle_vibecoding_agents_capstone_project.web
+# → http://localhost:8000 を開く
+```
+
+「Plan my day」で **素案の問題（赤）→ 自動修正（緑）→ ✓ feasible な旅程 → Confirm & Book（HITL）** が一画面で見えます。
+
+![FeasiblePlan Web UI](docs/ui.png)
+
+**Deployability**: HTML＋APIを**1コンテナ**に同梱しているので、そのままデプロイ可能（`Dockerfile` 同梱）:
+
+```bash
+docker build -t feasibleplan . && docker run -p 8000:8000 feasibleplan
+# または Cloud Run:  gcloud run deploy feasibleplan --source .   （$PORT を自動使用）
+```
 
 ## リンク
 

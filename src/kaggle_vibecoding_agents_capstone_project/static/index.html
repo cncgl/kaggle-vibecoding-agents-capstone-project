@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FeasiblePlan — doable, not just plausible</title>
+<style>
+  :root{
+    --bg1:#0b1f33; --bg2:#0d3b4f; --panel:#11304a; --panel2:#0f2940;
+    --line:#2f6f7e; --ink:#eaf6f4; --mut:#9fc0bd; --green:#27e0a6; --cyan:#34d1f0;
+    --red:#e0556a; --amber:#f0b429;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;color:var(--ink);
+    background:linear-gradient(135deg,var(--bg1),var(--bg2) 60%,#0a5c5c);min-height:100vh}
+  .wrap{max-width:980px;margin:0 auto;padding:28px 20px 60px}
+  header h1{font-size:42px;margin:0;letter-spacing:-1px}
+  header h1 .g{color:var(--green)}
+  header p{margin:6px 0 0;color:var(--mut);font-size:18px}
+  .grid{display:grid;grid-template-columns:330px 1fr;gap:22px;margin-top:24px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .card h2{margin:0 0 12px;font-size:15px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+  label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px}
+  select,input[type=number],input[type=text]{width:100%;padding:9px 10px;border-radius:8px;
+    border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:14px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .chips label{display:inline-flex;align-items:center;gap:6px;margin:0;padding:6px 10px;
+    border:1px solid var(--line);border-radius:20px;color:var(--ink);cursor:pointer;font-size:13px}
+  .chips input{accent-color:var(--green)}
+  button{margin-top:18px;width:100%;padding:12px;border:0;border-radius:10px;cursor:pointer;
+    font-size:15px;font-weight:700;color:#04202a;background:linear-gradient(90deg,var(--green),var(--cyan))}
+  button.secondary{background:#13354a;color:var(--ink);border:1px solid var(--line)}
+  button:disabled{opacity:.5;cursor:default}
+  .muted{color:var(--mut)}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;
+    border:1px solid var(--line);color:var(--cyan)}
+  .panel{margin-top:16px}
+  .viol{display:flex;gap:10px;align-items:flex-start;background:#3a1822;border:1px solid #7d2b3a;
+    border-radius:10px;padding:10px 12px;margin:8px 0;color:#ffd9df}
+  .viol .k{font-weight:800;color:var(--red);text-transform:uppercase;font-size:11px;
+    border:1px solid #7d2b3a;border-radius:6px;padding:2px 6px;white-space:nowrap}
+  .change{background:#0f3a32;border:1px solid #1c6b56;border-radius:10px;padding:9px 12px;margin:8px 0;color:#c9f7e8}
+  .timeline{margin-top:6px}
+  .stop{display:flex;gap:14px;align-items:center;background:var(--panel2);border:1px solid var(--line);
+    border-radius:12px;padding:12px 14px;margin:10px 0}
+  .stop .time{font-variant-numeric:tabular-nums;font-weight:700;color:var(--cyan);min-width:96px}
+  .stop .name{font-weight:600;flex:1}
+  .stop .tag{font-size:12px;padding:3px 8px;border-radius:20px;border:1px solid var(--line);color:var(--mut)}
+  .stop .tag.out{color:var(--amber);border-color:#6b5320}
+  .stop .tag.in{color:var(--green);border-color:#1c6b56}
+  .stop .cost{color:var(--mut);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+  .result-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .feasible{font-weight:800}
+  .feasible.ok{color:var(--green)} .feasible.no{color:var(--red)}
+  .total{margin-top:10px;font-size:18px;font-weight:700}
+  .book{margin-top:18px;border-top:1px dashed var(--line);padding-top:16px}
+  .ok-msg{color:var(--green);font-weight:700;margin-top:10px}
+  .spin{color:var(--mut)}
+  .empty{color:var(--mut);text-align:center;padding:40px 10px}
+  .hide{display:none}
+  .small{font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Feasible<span class="g">Plan</span></h1>
+    <p>Itineraries you can <b style="color:var(--green)">actually run</b> — doable, not just plausible.</p>
+  </header>
+
+  <div class="grid">
+    <!-- form -->
+    <div class="card">
+      <h2>Plan a day in Kyoto</h2>
+      <label>Day of week</label>
+      <select id="weekday">
+        <option value="0" selected>Monday</option>
+        <option value="1">Tuesday</option>
+        <option value="2">Wednesday</option>
+        <option value="3">Thursday</option>
+        <option value="4">Friday</option>
+        <option value="5">Saturday</option>
+        <option value="6">Sunday</option>
+      </select>
+
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label>Start</label><input id="start" type="number" min="0" max="23" value="9"></div>
+        <div style="flex:1"><label>End</label><input id="end" type="number" min="1" max="24" value="18"></div>
+      </div>
+
+      <label>Budget (¥)</label>
+      <input id="budget" type="number" min="0" step="500" value="10000">
+
+      <label>Interests</label>
+      <div class="chips" id="interests">
+        <label><input type="checkbox" value="history" checked> history</label>
+        <label><input type="checkbox" value="food" checked> food</label>
+        <label><input type="checkbox" value="nature" checked> nature</label>
+        <label><input type="checkbox" value="art"> art</label>
+      </div>
+
+      <button id="planBtn" onclick="plan()">Plan my day</button>
+      <p class="small muted" style="margin-top:12px">Tip: Monday triggers the closed-museum &amp; afternoon-rain demo.</p>
+    </div>
+
+    <!-- results -->
+    <div class="card">
+      <div class="result-head">
+        <h2 style="margin:0">Result</h2>
+        <span id="backend" class="badge hide"></span>
+      </div>
+
+      <div id="empty" class="empty">Set your day and hit <b>Plan my day</b>.<br>You'll see the raw plan's
+        problems, the auto-repairs, and a verified itinerary.</div>
+      <div id="status" class="spin panel hide"></div>
+
+      <div id="results" class="hide">
+        <div id="before" class="panel"></div>
+        <div id="repairs" class="panel"></div>
+
+        <div class="panel">
+          <div class="result-head">
+            <h2 style="margin:0">Verified itinerary</h2>
+            <span id="feasible" class="feasible"></span>
+          </div>
+          <div id="timeline" class="timeline"></div>
+          <div id="total" class="total"></div>
+        </div>
+
+        <div class="book">
+          <label>Traveler contact (kept private — redacted in logs)</label>
+          <input id="contact" type="text" value="aki.tanaka@example.com / +81 90-1234-5678">
+          <button id="bookBtn" class="secondary" onclick="book()">Confirm &amp; Book</button>
+          <div id="bookMsg" class="ok-msg"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let lastSteps = [];
+
+function $(id){ return document.getElementById(id); }
+
+async function plan(){
+  const interests = [...document.querySelectorAll('#interests input:checked')].map(c=>c.value);
+  const body = {
+    date_weekday: +$('weekday').value,
+    start_hour: +$('start').value,
+    end_hour: +$('end').value,
+    budget_jpy: +$('budget').value,
+    interests
+  };
+  $('empty').classList.add('hide');
+  $('results').classList.add('hide');
+  $('backend').classList.add('hide');
+  $('bookMsg').textContent = '';
+  $('planBtn').disabled = true;
+  $('status').classList.remove('hide');
+  $('status').textContent = 'Planning → verifying → repairing…';
+  try{
+    const r = await fetch('/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d = await r.json();
+    render(d);
+  }catch(e){
+    $('status').textContent = 'Error: ' + e;
+    return;
+  }finally{
+    $('planBtn').disabled = false;
+  }
+}
+
+function render(d){
+  $('status').classList.add('hide');
+  $('results').classList.remove('hide');
+  $('backend').textContent = 'backend: ' + d.backend;
+  $('backend').classList.remove('hide');
+
+  // before: initial violations
+  const before = $('before');
+  if(d.initial_violations.length){
+    before.innerHTML = '<h2 style="margin:0 0 8px">Raw plan had ' + d.initial_violations.length +
+      ' problem(s) <span class="muted small">— plausible, not doable</span></h2>' +
+      d.initial_violations.map(v =>
+        '<div class="viol"><span class="k">'+v.kind+'</span><span>'+esc(v.detail)+'</span></div>').join('');
+  }else{
+    before.innerHTML = '<h2 style="margin:0 0 8px">Raw plan was already feasible</h2>' +
+      '<p class="muted small">No constraint violations on this day.</p>';
+  }
+
+  // repairs
+  const rep = $('repairs');
+  const fixes = (d.changes||[]).filter(Boolean);
+  rep.innerHTML = fixes.length
+    ? '<h2 style="margin:0 0 8px">Auto-repaired ('+d.iterations+' iteration'+(d.iterations==1?'':'s')+')</h2>' +
+      fixes.map(c=>'<div class="change">'+esc(c)+'</div>').join('')
+    : '';
+
+  // timeline
+  $('timeline').innerHTML = d.steps.map(s=>{
+    const tag = s.indoor ? '<span class="tag in">indoor</span>' : '<span class="tag out">outdoor</span>';
+    return '<div class="stop"><span class="time">'+fmt(s.start)+'–'+fmt(s.end)+'</span>'+
+      '<span class="name">'+esc(s.name)+'</span>'+tag+
+      '<span class="cost">¥'+(s.cost??'?')+'</span></div>';
+  }).join('');
+
+  const fe = $('feasible');
+  fe.textContent = d.feasible ? '✓ feasible' : '⚠ not feasible';
+  fe.className = 'feasible ' + (d.feasible ? 'ok' : 'no');
+  $('total').textContent = 'Total ¥' + d.total_cost;
+
+  lastSteps = d.steps.map(s=>({place_id:s.place_id, start_hour:s.start, duration_h:+(s.end-s.start).toFixed(2)}));
+  $('bookBtn').disabled = !d.feasible;
+}
+
+async function book(){
+  $('bookBtn').disabled = true;
+  const body = { steps: lastSteps, traveler_contact: $('contact').value };
+  const r = await fetch('/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d = await r.json();
+  $('bookMsg').textContent = d.booked ? '✓ Booked. (Human approved — contact was redacted in server logs.)'
+                                      : '✗ Booking declined.';
+}
+
+function fmt(h){ const hh=Math.floor(h), mm=Math.round((h-hh)*60); return hh+':'+String(mm).padStart(2,'0'); }
+function esc(s){ return String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+// Deep-link: /?auto=1 runs a plan on load (handy for demos & screenshots).
+if(new URLSearchParams(location.search).has('auto')){ window.addEventListener('load', plan); }
+</script>
+</body>
+</html>
