@@ -16,14 +16,29 @@ from .profiler import Profiler
 MAX_ITERS = 3
 
 
-def plan_trip(request: TripRequest) -> tuple[Itinerary, FeasibilityReport, dict[str, Place]]:
+def plan_trip(
+    request: TripRequest,
+    *,
+    places: dict[str, Place] | None = None,
+    rainy_hours: set[int] | None = None,
+) -> tuple[Itinerary, FeasibilityReport, dict[str, Place]]:
+    """Plan a doable day trip.
+
+    `places` / `rainy_hours` are optional injection points (used by eval and tests
+    to vary the world per scenario); when omitted they come from the live tools.
+    """
+
     # 0) Profiler / memory: merge stored prefs (request prefs win if set explicitly).
     profiler = Profiler()
     _stored = profiler.load()  # trace: memory.load  (TODO: actually merge)
 
-    # 1) Gather tool context.
-    places = places_tool.get_places(request.city)
-    rainy = weather_tool.get_rainy_hours(lat=34.99, lon=135.77)  # TODO: per-place coords/date
+    # 1) Gather tool context (or use the injected world).
+    places = places if places is not None else places_tool.get_places(request.city)
+    rainy = (
+        rainy_hours
+        if rainy_hours is not None
+        else weather_tool.get_rainy_hours(lat=34.99, lon=135.77)  # TODO: per-place coords/date
+    )
 
     # 2) Draft.
     itinerary = planner.draft(request, places)  # trace: planner.draft
