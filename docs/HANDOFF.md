@@ -36,7 +36,8 @@ draft/repair を実装。**3バックエンドを自動選択**（`backend()`）
 
 - **gemini** … Gemini API（要キー）。`output_schema`で構造化出力。実機検証済（live 40%→100%）。
 - **local** … Ollama / LM Studio（OpenAI互換）を ADK `LiteLlm` 経由で。**キー・課金不要・完全オフライン**。
-  JSON指示＋防御パース。`llama3.2:3b`で実機検証済（3Bは収束不安定→mock救済、7-8B推奨）。
+  JSON指示＋防御パース（配列/単一ステップ/think/末尾ゴミを吸収、max_output_tokens=2048）。
+  **LM Studio `qwen/qwen3.6-27b` で実機検証済（フォールバック0・初手feasible）**。小型3Bは収束不安定→mock救済。
 - **mock** … 決定論フォールバック。`FEASIBLEPLAN_BACKEND=mock` で明示強制も可。
 
 `planner.py` がディスパッチし、**LLM失敗（無キー/429/壊れJSON）時は常にmockへフォールバック**＝デモは絶対に落ちない。
