@@ -30,6 +30,7 @@ Env (loaded from a project-root ``.env`` by ``load_dotenv``):
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 import re
@@ -308,10 +309,13 @@ def _retry_wait(exc: Exception) -> float | None:
 # Local (Ollama/LM Studio) models don't get ADK's `output_schema` constraint, so we
 # spell out the JSON shape and parse defensively instead.
 _JSON_SHAPE_INSTRUCTION = (
-    "Respond with ONLY a single JSON object — no prose, no markdown fences — of this "
-    'exact shape: {"steps": [{"place_id": "<an id from the candidate list>", '
+    "Output ONLY a single JSON object and nothing else — no prose, no markdown "
+    "fences, no <think> reasoning. Begin your reply with '{' and end with '}'. "
+    "The top-level value MUST be an object with keys \"steps\" and \"changes\" "
+    "(do NOT return a bare array or a single step). "
+    'Exact shape: {"steps": [{"place_id": "<an id from the candidate list>", '
     '"start_hour": 9.5, "duration_h": 1.5}], "changes": ["<short note per fix>"]}. '
-    "Use 2-4 steps. `changes` may be an empty list for a fresh draft."
+    "Use 2-4 steps. `changes` may be an empty list for a fresh draft. /no_think"
 )
 
 
@@ -343,8 +347,12 @@ async def _run_async(instruction: str, prompt: str) -> _PlanResult:
     model, use_schema = _build_model()
     kwargs = {"output_schema": _PlanResult, "output_key": "plan"} if use_schema else {}
     instr = instruction if use_schema else f"{instruction}\n\n{_JSON_SHAPE_INSTRUCTION}"
+    # Low temperature for stable JSON; generous token budget so the JSON isn't truncated.
+    config = types.GenerateContentConfig(temperature=0.2, max_output_tokens=2048)
 
-    agent = LlmAgent(name="planner", model=model, instruction=instr, **kwargs)
+    agent = LlmAgent(
+        name="planner", model=model, instruction=instr, generate_content_config=config, **kwargs
+    )
     runner = InMemoryRunner(agent=agent, app_name=_APP)
     await runner.session_service.create_session(app_name=_APP, user_id=_USER, session_id=_SESSION)
 
@@ -358,18 +366,41 @@ async def _run_async(instruction: str, prompt: str) -> _PlanResult:
                 if getattr(part, "text", None):
                     final_text = part.text
 
-    return _PlanResult.model_validate_json(_extract_json(final_text))
+    return _PlanResult.model_validate(_coerce_plan(_first_json_value(final_text)))
 
 
-def _extract_json(text: str) -> str:
-    """Pull the JSON object out of a model response (handles fences/prose)."""
+def _first_json_value(text: str):
+    """Extract the first complete JSON value (object or array) from a model response.
 
-    t = _strip_fences(text)
-    if not t.startswith("{"):
-        start, end = t.find("{"), t.rfind("}")
-        if start != -1 and end > start:
-            t = t[start : end + 1]
-    return t
+    Tolerates chain-of-thought (<think> blocks), markdown fences, leading prose,
+    and trailing characters after the value (raw_decode stops at its end).
+    """
+
+    t = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    t = re.sub(r"<think>.*$", "", t, flags=re.DOTALL | re.IGNORECASE)  # unclosed/truncated
+    t = _strip_fences(t)
+    m = re.search(r"[\[{]", t)
+    if m is None:
+        raise ValueError("no JSON value in model output")
+    value, _ = json.JSONDecoder().raw_decode(t[m.start() :])
+    return value
+
+
+def _coerce_plan(value) -> dict:
+    """Normalize common LLM shapes into the {"steps": [...], "changes": [...]} object.
+
+    Some models ignore the wrapper and return a bare list of steps, or a single
+    step object; accept those rather than failing to the mock unnecessarily.
+    """
+
+    if isinstance(value, list):
+        return {"steps": value, "changes": []}
+    if isinstance(value, dict):
+        if "steps" in value:
+            return value
+        if "place_id" in value:  # a single bare step
+            return {"steps": [value], "changes": []}
+    return value  # leave anything else for pydantic to reject with a clear error
 
 
 def _strip_fences(text: str) -> str:
