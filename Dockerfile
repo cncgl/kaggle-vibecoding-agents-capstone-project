@@ -13,7 +13,13 @@ COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
 RUN uv sync --frozen --no-dev
 
+# A public deploy defaults to the deterministic MOCK backend: no API key, no quota,
+# no LLM cost, and it never breaks — yet it tells the same verify→repair story. So a
+# Cloud Run demo stays up forever for $0 of model spend. To use a real LLM instead,
+# override at deploy time, e.g.:
+#   gcloud run deploy ... --set-env-vars FEASIBLEPLAN_BACKEND=gemini,GOOGLE_API_KEY=...
+ENV FEASIBLEPLAN_BACKEND=mock
+
 EXPOSE 8000
-# Bind 0.0.0.0 and honor Cloud Run's $PORT. Runs offline by default (mock backend);
-# set GOOGLE_API_KEY or FEASIBLEPLAN_BACKEND=local at deploy time to use a real LLM.
+# Bind 0.0.0.0 and honor Cloud Run's $PORT.
 CMD ["sh", "-c", "uv run uvicorn kaggle_vibecoding_agents_capstone_project.web:app --host 0.0.0.0 --port ${PORT:-8000}"]
