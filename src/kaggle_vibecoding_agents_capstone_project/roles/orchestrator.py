@@ -7,11 +7,17 @@ Observability hook points are marked `# trace:` — wire these to OpenTelemetry
 
 from __future__ import annotations
 
+import logging
+from typing import Callable
+
+from .. import security
 from ..models import FeasibilityReport, Itinerary, Place, TripRequest
 from ..tools import places as places_tool
 from ..tools import weather as weather_tool
 from . import planner, verifier
 from .profiler import Profiler
+
+_log = logging.getLogger(__name__)
 
 MAX_ITERS = 3
 
@@ -63,3 +69,41 @@ def plan_trip(
         planner_mode=planner.active_mode(),
     )
     return itinerary, report, places
+
+
+def book(
+    itinerary: Itinerary,
+    places: dict[str, Place],
+    *,
+    approver: Callable[[str], bool],
+    traveler_contact: str = "",
+) -> bool:
+    """Human-in-the-loop gate: finalize the trip only with explicit approval.
+
+    Booking is the one irreversible action, so the agent must never do it on its
+    own — it presents a summary and waits for a human yes/no (`approver`). Anything
+    we log is run through `security.redact`, so the traveler's contact details never
+    land in logs/traces (a Concierge "keep personal info safe" requirement).
+    Returns True iff the trip was approved (in the MVP "booking" is a no-op stub;
+    a real impl would call a reservation API here).
+    """
+
+    summary = _booking_summary(itinerary, places)
+    if traveler_contact:
+        _log.info("booking requested for %s", security.redact(traveler_contact))
+
+    if not approver(summary):
+        _log.info("booking declined by human reviewer")
+        return False
+
+    _log.info("booking confirmed by human reviewer")  # real impl: call reservation API
+    return True
+
+
+def _booking_summary(itinerary: Itinerary, places: dict[str, Place]) -> str:
+    lines = ["Confirm & book this itinerary?"]
+    for s in itinerary.steps:
+        name = places[s.place_id].name if s.place_id in places else s.place_id
+        lines.append(f"  {s.start_hour:>4.1f}  {name}")
+    lines.append(f"  total ¥{itinerary.total_cost(places)}")
+    return "\n".join(lines)

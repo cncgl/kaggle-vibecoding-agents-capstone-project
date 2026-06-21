@@ -9,8 +9,27 @@ for Gemini/ADK and `places` for the Maps MCP server (see docs/HANDOFF.md).
 
 from __future__ import annotations
 
+import logging
+
 from .models import Itinerary, Place, TripRequest, UserPreferences
 from .roles import orchestrator
+
+# A simulated stored contact for the traveler — stands in for real PII. The point
+# of the demo is that this never reaches a log un-redacted (see security.redact).
+_TRAVELER_CONTACT = "aki.tanaka@example.com / +81 90-1234-5678"
+
+
+def _interactive_approver(summary: str) -> bool:
+    """Ask a human to approve booking. Declines safely when there's no TTY."""
+
+    print("\n--- human-in-the-loop ---")
+    print(summary)
+    try:
+        answer = input("Approve & book? [y/N] ").strip().lower()
+    except EOFError:
+        print("(no interactive input — declining by default)")
+        return False
+    return answer in {"y", "yes"}
 
 
 def _fmt_itinerary(it: Itinerary, places: dict[str, Place]) -> str:
@@ -26,6 +45,9 @@ def _fmt_itinerary(it: Itinerary, places: dict[str, Place]) -> str:
 
 
 def main() -> None:
+    # INFO logs make the PII redaction in the booking step visible in the demo.
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+
     # Monday (weekday 0) trips up the closed museum; afternoon rain trips the garden.
     request = TripRequest(
         city="Kyoto",
@@ -51,6 +73,17 @@ def main() -> None:
         print("\n⚠️ remaining violations:")
         for v in report.remaining_violations:
             print(f"  - [{v.kind}] {v.detail}")
+
+    # Security / human-in-the-loop: only a feasible plan is offered for booking,
+    # and booking (the irreversible step) requires explicit human approval.
+    if report.feasible:
+        booked = orchestrator.book(
+            itinerary,
+            places,
+            approver=_interactive_approver,
+            traveler_contact=_TRAVELER_CONTACT,
+        )
+        print(f"\nBooked: {booked}")
 
 
 if __name__ == "__main__":
