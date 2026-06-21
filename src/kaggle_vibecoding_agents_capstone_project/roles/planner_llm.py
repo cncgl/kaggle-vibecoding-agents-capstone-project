@@ -21,7 +21,10 @@ Key/env (loaded from a project-root ``.env`` by ``load_dotenv``):
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
+import re
+import time
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -30,10 +33,18 @@ from ..models import Itinerary, ItineraryStep, Place, TripRequest, Violation
 
 load_dotenv()  # idempotent; lets `.env` configure the Gemini key + model
 
+_log = logging.getLogger(__name__)
+
 _APP = "feasibleplan"
 _USER = "local"
 _SESSION = "plan"
 _WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+# Free-tier rate-limit handling: retry a 429 a couple of times, honoring the
+# server's suggested delay (capped, so a daily-quota exhaustion degrades to the
+# mock fallback quickly instead of hanging the demo).
+_MAX_RETRIES = 2
+_MAX_WAIT_S = 30.0
 
 
 def model_name() -> str:
@@ -167,9 +178,41 @@ def _repair_prompt(
 
 
 def _run(instruction: str, prompt: str) -> _PlanResult:
-    """Run a one-shot ADK LlmAgent constrained to the _PlanResult schema."""
+    """Run a one-shot ADK LlmAgent constrained to the _PlanResult schema.
 
-    return asyncio.run(_run_async(instruction, prompt))
+    Retries on a 429 (free-tier rate limit) honoring the server's suggested wait;
+    if it still fails the caller falls back to the deterministic mock.
+    """
+
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            return asyncio.run(_run_async(instruction, prompt))
+        except Exception as exc:  # noqa: BLE001 — inspect, maybe retry, else re-raise
+            wait = _retry_wait(exc)
+            if wait is None or attempt == _MAX_RETRIES:
+                raise
+            _log.info("transient API error; retrying in %.0fs", wait)
+            time.sleep(wait)
+    raise RuntimeError("unreachable")  # pragma: no cover
+
+
+def _retry_wait(exc: Exception) -> float | None:
+    """Seconds to wait before retrying a transient API error, or None if not worth it.
+
+    Retryable: a per-*minute* 429 throttle (honor the server's suggested delay) and
+    a transient 503/500 overload (short backoff). NOT retryable: a per-*day* free-tier
+    exhaustion — waiting seconds can't clear it, so we fall back to the mock at once.
+    """
+
+    text = str(exc)
+    if "429" in text or "RESOURCE_EXHAUSTED" in text:
+        if re.search(r"per\s*day|RequestsPerDay", text, re.IGNORECASE):
+            return None
+        m = re.search(r"retry(?:Delay)?[\"']?[:\s]+['\"]?([\d.]+)s", text, re.IGNORECASE)
+        return min((float(m.group(1)) if m else 5.0) + 1.0, _MAX_WAIT_S)
+    if "503" in text or "UNAVAILABLE" in text or "500" in text or "INTERNAL" in text:
+        return 4.0
+    return None
 
 
 async def _run_async(instruction: str, prompt: str) -> _PlanResult:

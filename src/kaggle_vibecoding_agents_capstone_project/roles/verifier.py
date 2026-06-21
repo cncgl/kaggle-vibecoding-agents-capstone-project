@@ -47,6 +47,17 @@ def verify(
                 )
             )
 
+        # 2b) Within the traveler's requested day window?
+        if start < request.start_hour or end > request.end_hour:
+            violations.append(
+                Violation(
+                    i,
+                    "window",
+                    f"{place.name} at {start:.1f}–{end:.1f} is outside the requested "
+                    f"window {request.start_hour}:00–{request.end_hour}:00",
+                )
+            )
+
         # 3) Weather-appropriate? (outdoor place during a rainy hour)
         if not place.indoor and _overlaps_rain(start, end, rainy_hours):
             violations.append(
