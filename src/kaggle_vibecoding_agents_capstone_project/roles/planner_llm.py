@@ -52,8 +52,14 @@ def model_name() -> str:
 
 
 def available() -> bool:
-    """True when a Gemini API key is configured (so the LLM path can run)."""
+    """True when the LLM path should run: a Gemini key is set and mock isn't forced.
 
+    Set ``FEASIBLEPLAN_BACKEND=mock`` to force the offline mock without removing
+    your key — handy for quota-free development and deterministic demos.
+    """
+
+    if os.environ.get("FEASIBLEPLAN_BACKEND", "").strip().lower() == "mock":
+        return False
     return bool(os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"))
 
 
