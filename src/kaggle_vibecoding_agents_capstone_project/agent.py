@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 
 from .models import Itinerary, Place, TripRequest, UserPreferences
-from .roles import orchestrator
+from .roles import orchestrator, planner_llm
 
 # A simulated stored contact for the traveler — stands in for real PII. The point
 # of the demo is that this never reaches a log un-redacted (see security.redact).
@@ -47,6 +47,7 @@ def _fmt_itinerary(it: Itinerary, places: dict[str, Place]) -> str:
 def main() -> None:
     # INFO logs make the PII redaction in the booking step visible in the demo.
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    planner_llm.quiet_sdk_logs()  # mute ADK's traceback spew on handled LLM fallbacks
 
     # Monday (weekday 0) trips up the closed museum; afternoon rain trips the garden.
     request = TripRequest(

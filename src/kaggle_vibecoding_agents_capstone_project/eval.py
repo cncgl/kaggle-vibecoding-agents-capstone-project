@@ -16,10 +16,11 @@ active (offline mock, or live Gemini if a key is configured).
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 from .models import TripRequest, UserPreferences
-from .roles import orchestrator, planner
+from .roles import orchestrator, planner, planner_llm
 
 
 @dataclass
@@ -79,6 +80,9 @@ def _pct(n: int, total: int) -> str:
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
+    planner_llm.quiet_sdk_logs()  # mute ADK's traceback spew on handled LLM fallbacks
+
     rows = run()
     total = len(rows)
 

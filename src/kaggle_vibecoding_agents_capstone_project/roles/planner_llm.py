@@ -57,6 +57,36 @@ def available() -> bool:
     return bool(os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"))
 
 
+def quiet_sdk_logs() -> None:
+    """Silence ADK/genai ERROR tracebacks for *handled* fallbacks.
+
+    When an LLM call fails we catch it and fall back to the mock, but ADK still
+    logs the exception+traceback at ERROR. That's alarming noise for a working
+    demo, so entrypoints call this to mute the SDK loggers; our own concise
+    'using offline mock' warning remains the signal.
+    """
+
+    for name in ("google_adk", "google.adk", "google_genai", "google.genai"):
+        logging.getLogger(name).setLevel(logging.CRITICAL)
+    # httpx logs every request at INFO (incl. the 429 line); demote to WARNING.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+
+def short_reason(exc: Exception) -> str:
+    """One-line, human-readable cause for a failed LLM call (for warnings)."""
+
+    text = str(exc)
+    if "429" in text or "RESOURCE_EXHAUSTED" in text:
+        if re.search(r"per\s*day|RequestsPerDay", text, re.IGNORECASE):
+            return "Gemini free-tier daily quota exhausted (429)"
+        return "Gemini rate limit (429)"
+    if "503" in text or "UNAVAILABLE" in text:
+        return "Gemini temporarily overloaded (503)"
+    if "500" in text or "INTERNAL" in text:
+        return "Gemini server error (500)"
+    return f"{type(exc).__name__}: {text[:120]}"
+
+
 # --- structured output contract (what the LLM must return) -------------------
 
 

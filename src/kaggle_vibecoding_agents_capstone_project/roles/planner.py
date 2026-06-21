@@ -37,7 +37,7 @@ def draft(request: TripRequest, places: dict[str, Place]) -> Itinerary:
         try:
             return planner_llm.llm_draft(request, places)
         except Exception as exc:  # noqa: BLE001 — never let the demo crash
-            _log.warning("LLM draft failed (%s); falling back to mock", exc)
+            _log.warning("LLM draft unavailable (%s); using offline mock", planner_llm.short_reason(exc))
     return _mock_draft(request, places)
 
 
@@ -54,7 +54,7 @@ def repair(
         try:
             return planner_llm.llm_repair(itinerary, violations, request, places, rainy_hours)
         except Exception as exc:  # noqa: BLE001 — never let the demo crash
-            _log.warning("LLM repair failed (%s); falling back to mock", exc)
+            _log.warning("LLM repair unavailable (%s); using offline mock", planner_llm.short_reason(exc))
     return _mock_repair(itinerary, violations, request, places, rainy_hours)
 
 
