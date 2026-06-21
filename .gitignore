@@ -1,0 +1,23 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Secrets / API keys (Google AI Studio key for ADK lives here)
+.env
+*.env
+!.env.example
+
+# kaggle scaffold
+data/raw/
+data/interim/
+data/processed/
+models/
+logs/
+.ipynb_checkpoints/
