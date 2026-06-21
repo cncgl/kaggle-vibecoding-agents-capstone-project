@@ -87,8 +87,16 @@ uv run python -m kaggle_vibecoding_agents_capstone_project.agent
 # → 出力1行目が `Planner backend: gemini (gemini-2.5-flash, adk)` になる
 ```
 
-Planner は **キーがあればGemini、無ければmockに自動フォールバック**（LLM失敗時も落ちない）。
-Verifier は常に決定論的で、実行可能性の判定は LLM に依存しない。
+Gemini無料枠が尽きた等でクラウドを使いたくない場合は、**ローカルLLM（Ollama / LM Studio）**にも切替可（キー・課金不要・完全オフライン）。ADKの`LiteLlm`経由で接続:
+
+```bash
+ollama pull llama3.2:3b   # 例（7-8Bモデルの方が安定）
+# .env に:  FEASIBLEPLAN_BACKEND=local  /  FEASIBLEPLAN_LLM_MODEL=llama3.2:3b
+uv run python -m kaggle_vibecoding_agents_capstone_project.agent
+# → `Planner backend: local (llama3.2:3b @ http://localhost:11434/v1, adk+litellm)`
+```
+
+Planner は **gemini / local / mock** の3バックエンドを自動選択し、LLMが失敗しても**mockに自動フォールバック**（落ちない）。Verifier は常に決定論的で、実行可能性の判定は LLM に依存しない。
 
 ## リンク
 

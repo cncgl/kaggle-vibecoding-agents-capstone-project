@@ -25,9 +25,9 @@ _log = logging.getLogger(__name__)
 
 
 def active_mode() -> str:
-    """Which backend ``draft``/``repair`` will use: 'gemini (adk)' or 'mock'."""
+    """Which backend ``draft``/``repair`` will use: gemini / local / mock."""
 
-    return f"gemini ({planner_llm.model_name()}, adk)" if planner_llm.available() else "mock"
+    return planner_llm.mode_label()
 
 
 def draft(request: TripRequest, places: dict[str, Place]) -> Itinerary:

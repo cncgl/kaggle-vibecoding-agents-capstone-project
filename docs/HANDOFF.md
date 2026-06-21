@@ -31,12 +31,16 @@ uv run python -m kaggle_vibecoding_agents_capstone_project.agent
 
 → アーキテクチャと"自己検証・自己修正"の価値はこの時点で実証済み。
 
-✅ **Planner を Google ADK（Gemini）に配線済み**（2026-06-21）。`roles/planner_llm.py` が
-ADK `LlmAgent`＋構造化出力（`output_schema=_PlanResult`）で draft/repair を実装。
-`planner.py` は「キーがあればGemini／無ければmock」に自動ディスパッチ。**キー無し・オフラインでも
-常に動く**設計（LLM失敗時もmockへフォールバックしデモは絶対に落ちない）。
-構造検証（schema往復・prompt生成・ADK構築・ハルシネid除去）は **済**。
-**残:** 実キーでのライブ検証（下記セットアップ）。Maps MCP / live weather はまだ mock/curated。
+✅ **Planner を Google ADK に配線済み**（2026-06-21）。`roles/planner_llm.py` が ADK `LlmAgent` で
+draft/repair を実装。**3バックエンドを自動選択**（`backend()`）:
+
+- **gemini** … Gemini API（要キー）。`output_schema`で構造化出力。実機検証済（live 40%→100%）。
+- **local** … Ollama / LM Studio（OpenAI互換）を ADK `LiteLlm` 経由で。**キー・課金不要・完全オフライン**。
+  JSON指示＋防御パース。`llama3.2:3b`で実機検証済（3Bは収束不安定→mock救済、7-8B推奨）。
+- **mock** … 決定論フォールバック。`FEASIBLEPLAN_BACKEND=mock` で明示強制も可。
+
+`planner.py` がディスパッチし、**LLM失敗（無キー/429/壊れJSON）時は常にmockへフォールバック**＝デモは絶対に落ちない。
+切替は `.env`（`FEASIBLEPLAN_BACKEND` / `FEASIBLEPLAN_LLM_*`）。**残:** Maps MCP / live weather は未（mock/curated）。
 
 **セットアップ（実LLMを使う場合）**:
 

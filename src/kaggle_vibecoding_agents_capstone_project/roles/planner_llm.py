@@ -1,21 +1,30 @@
-"""LLM-backed Planner — the real "brain" of FeasiblePlan (Google ADK + Gemini).
+"""LLM-backed Planner — the real "brain" of FeasiblePlan (Google ADK).
 
 This is the piece that makes the multi-agent story real: an ADK ``LlmAgent`` drafts
 the itinerary (creative work) while the deterministic Verifier remains the source of
-truth. We keep ``planner.py``'s public ``draft``/``repair`` signatures; this module is
-only reached when a Gemini key is configured (see ``available()``). Any failure here
-(no key, network, bad JSON) makes the caller fall back to the offline mock, so the
-demo always runs.
+truth. We keep ``planner.py``'s public ``draft``/``repair`` signatures.
+
+Two interchangeable LLM backends behind ADK (see ``backend()``):
+  * **gemini** — Gemini via the Gemini API (needs a key); schema-constrained output.
+  * **local**  — any OpenAI-compatible local server (Ollama / LM Studio) via ADK's
+    LiteLlm; no key, no quota, fully offline. We instruct the JSON shape and parse it.
+Anything that fails (no key, quota/network, bad JSON) falls back to the offline mock,
+so the demo always runs.
 
 Honest-demo design: the Planner is **not** told the live weather forecast, so it can
 genuinely pick an outdoor stop that later turns out to clash with afternoon rain —
 exactly the kind of "plausible but not doable" mistake the Verifier exists to catch.
 On repair it *is* given the violations (and the rainy hours) as feedback to fix.
 
-Key/env (loaded from a project-root ``.env`` by ``load_dotenv``):
+Env (loaded from a project-root ``.env`` by ``load_dotenv``):
+    # cloud (Gemini)
     GOOGLE_GENAI_USE_VERTEXAI=FALSE
     GOOGLE_API_KEY=<from https://aistudio.google.com/apikey>
-    FEASIBLEPLAN_MODEL=gemini-2.5-flash   # optional override
+    FEASIBLEPLAN_MODEL=gemini-2.5-flash        # optional Gemini model override
+    # local (Ollama / LM Studio) — quota-free fallback
+    FEASIBLEPLAN_BACKEND=local                 # or: gemini | mock
+    FEASIBLEPLAN_LLM_BASE_URL=http://localhost:11434/v1   # Ollama; LM Studio = :1234/v1
+    FEASIBLEPLAN_LLM_MODEL=llama3.2:3b         # a model you've pulled/loaded
 """
 
 from __future__ import annotations
@@ -51,16 +60,59 @@ def model_name() -> str:
     return os.environ.get("FEASIBLEPLAN_MODEL", "gemini-2.5-flash")
 
 
-def available() -> bool:
-    """True when the LLM path should run: a Gemini key is set and mock isn't forced.
+# --- backend selection: gemini (cloud) | local (Ollama/LM Studio) | mock --------
 
-    Set ``FEASIBLEPLAN_BACKEND=mock`` to force the offline mock without removing
-    your key — handy for quota-free development and deterministic demos.
+_DEFAULT_LOCAL_BASE_URL = "http://localhost:11434/v1"  # Ollama; LM Studio = :1234/v1
+
+
+def _has_gemini_key() -> bool:
+    return bool(os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"))
+
+
+def backend() -> str:
+    """Resolve which Planner backend to use: 'gemini' | 'local' | 'mock'.
+
+    Precedence: an explicit ``FEASIBLEPLAN_BACKEND`` wins (mock/local/gemini), else
+    auto-detect — a local endpoint URL → local, a Gemini key → gemini, else mock.
     """
 
-    if os.environ.get("FEASIBLEPLAN_BACKEND", "").strip().lower() == "mock":
-        return False
-    return bool(os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"))
+    forced = os.environ.get("FEASIBLEPLAN_BACKEND", "").strip().lower()
+    if forced == "mock":
+        return "mock"
+    if forced == "local":
+        return "local"
+    if forced == "gemini":
+        return "gemini" if _has_gemini_key() else "mock"
+    if os.environ.get("FEASIBLEPLAN_LLM_BASE_URL"):
+        return "local"
+    if _has_gemini_key():
+        return "gemini"
+    return "mock"
+
+
+def available() -> bool:
+    """True when an LLM backend (gemini or local) should run, i.e. not mock."""
+
+    return backend() != "mock"
+
+
+def _local_model() -> str:
+    return os.environ.get("FEASIBLEPLAN_LLM_MODEL", "llama3.2:3b")
+
+
+def _local_base_url() -> str:
+    return os.environ.get("FEASIBLEPLAN_LLM_BASE_URL", _DEFAULT_LOCAL_BASE_URL)
+
+
+def mode_label() -> str:
+    """Human-readable label of the active backend (for the feasibility report)."""
+
+    b = backend()
+    if b == "gemini":
+        return f"gemini ({model_name()}, adk)"
+    if b == "local":
+        return f"local ({_local_model()} @ {_local_base_url()}, adk+litellm)"
+    return "mock"
 
 
 def quiet_sdk_logs() -> None:
@@ -74,8 +126,10 @@ def quiet_sdk_logs() -> None:
 
     for name in ("google_adk", "google.adk", "google_genai", "google.genai"):
         logging.getLogger(name).setLevel(logging.CRITICAL)
-    # httpx logs every request at INFO (incl. the 429 line); demote to WARNING.
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    # httpx / LiteLLM log every request at INFO (incl. 429 and completion lines);
+    # demote to WARNING so the demo output stays clean.
+    for name in ("httpx", "LiteLLM", "litellm"):
+        logging.getLogger(name).setLevel(logging.WARNING)
 
 
 def short_reason(exc: Exception) -> str:
@@ -251,19 +305,46 @@ def _retry_wait(exc: Exception) -> float | None:
     return None
 
 
+# Local (Ollama/LM Studio) models don't get ADK's `output_schema` constraint, so we
+# spell out the JSON shape and parse defensively instead.
+_JSON_SHAPE_INSTRUCTION = (
+    "Respond with ONLY a single JSON object — no prose, no markdown fences — of this "
+    'exact shape: {"steps": [{"place_id": "<an id from the candidate list>", '
+    '"start_hour": 9.5, "duration_h": 1.5}], "changes": ["<short note per fix>"]}. '
+    "Use 2-4 steps. `changes` may be an empty list for a fresh draft."
+)
+
+
+def _build_model() -> tuple[object, bool]:
+    """Return (model arg for LlmAgent, whether to use ADK's output_schema).
+
+    Gemini supports schema-constrained output; local OpenAI-compatible models go
+    through LiteLLM where we instruct the JSON shape and parse it ourselves.
+    """
+
+    if backend() == "local":
+        from google.adk.models.lite_llm import LiteLlm
+
+        model = LiteLlm(
+            model=f"openai/{_local_model()}",
+            api_base=_local_base_url(),
+            api_key=os.environ.get("FEASIBLEPLAN_LLM_API_KEY", "not-needed"),
+        )
+        return model, False
+    return model_name(), True
+
+
 async def _run_async(instruction: str, prompt: str) -> _PlanResult:
     # Imported lazily so the package imports fine even if ADK is unavailable.
     from google.adk.agents import LlmAgent
     from google.adk.runners import InMemoryRunner
     from google.genai import types
 
-    agent = LlmAgent(
-        name="planner",
-        model=model_name(),
-        instruction=instruction,
-        output_schema=_PlanResult,
-        output_key="plan",
-    )
+    model, use_schema = _build_model()
+    kwargs = {"output_schema": _PlanResult, "output_key": "plan"} if use_schema else {}
+    instr = instruction if use_schema else f"{instruction}\n\n{_JSON_SHAPE_INSTRUCTION}"
+
+    agent = LlmAgent(name="planner", model=model, instruction=instr, **kwargs)
     runner = InMemoryRunner(agent=agent, app_name=_APP)
     await runner.session_service.create_session(app_name=_APP, user_id=_USER, session_id=_SESSION)
 
@@ -277,7 +358,18 @@ async def _run_async(instruction: str, prompt: str) -> _PlanResult:
                 if getattr(part, "text", None):
                     final_text = part.text
 
-    return _PlanResult.model_validate_json(_strip_fences(final_text))
+    return _PlanResult.model_validate_json(_extract_json(final_text))
+
+
+def _extract_json(text: str) -> str:
+    """Pull the JSON object out of a model response (handles fences/prose)."""
+
+    t = _strip_fences(text)
+    if not t.startswith("{"):
+        start, end = t.find("{"), t.rfind("}")
+        if start != -1 and end > start:
+            t = t[start : end + 1]
+    return t
 
 
 def _strip_fences(text: str) -> str:
