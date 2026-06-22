@@ -1,3 +1,13 @@
+---
+title: FeasiblePlan
+emoji: 🗺️
+colorFrom: green
+colorTo: blue
+sdk: docker
+app_port: 8000
+pinned: false
+---
+
 # vibecoding-agents-capstone-project
 
 **AI Agents: Intensive Vibe Coding Capstone Project** の提出用リポジトリ。
