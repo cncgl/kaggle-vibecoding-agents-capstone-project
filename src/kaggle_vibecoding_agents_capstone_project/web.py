@@ -11,6 +11,7 @@ It is deliberately one self-contained app (HTML + API) so it deploys as one cont
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -110,7 +111,11 @@ def _serialize(itinerary: Itinerary, report, places: dict[str, Place]) -> dict:
 def main() -> None:
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    # Defaults to localhost; set HOST=0.0.0.0 to expose on the LAN (e.g. record the
+    # UI from another machine on the same network).
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "8000"))
+    uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":
