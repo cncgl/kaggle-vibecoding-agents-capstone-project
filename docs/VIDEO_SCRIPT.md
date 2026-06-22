@@ -1,5 +1,7 @@
 # FeasiblePlan — 5-minute demo video script & storyboard
 
+> 日本語: [VIDEO_SCRIPT-ja.md](VIDEO_SCRIPT-ja.md)
+
 **Target:** ≤ 5:00, public on YouTube. **Narration:** English (~700 words ≈ 150 wpm).
 **Goal:** make the "plausible vs. doable" gap *visible*, then show the agent close it.
 
