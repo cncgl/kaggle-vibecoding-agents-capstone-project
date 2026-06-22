@@ -93,7 +93,7 @@ HTML and API ship in **one container**, so it deploys as-is (Deployability):
 ```bash
 docker build -t feasibleplan . && docker run -p 8000:8000 feasibleplan   # http://localhost:8000
 # Cloud Run:        gcloud run deploy feasibleplan --source .
-# Hugging Face:     push this repo to a Docker Space (config is in this README's frontmatter)
+# Hugging Face:     bash scripts/deploy-hf.sh   (Docker Space; config is in this README's frontmatter)
 ```
 
 A public deploy defaults to `FEASIBLEPLAN_BACKEND=mock`: no API key, no quota, **no external
