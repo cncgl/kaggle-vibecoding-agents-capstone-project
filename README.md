@@ -8,128 +8,108 @@ app_port: 8000
 pinned: false
 ---
 
-# vibecoding-agents-capstone-project
+# FeasiblePlan — a travel concierge that returns itineraries you can *actually run*
 
-**AI Agents: Intensive Vibe Coding Capstone Project** の提出用リポジトリ。
-5-Day AI Agents: Intensive Vibe Coding Course With Google（2026/06/15–19）の集大成。
+> 日本語: [README-ja.md](README-ja.md) · Full writeup: [docs/WRITEUP.md](docs/WRITEUP.md)
 
-- slug: `vibecoding-agents-capstone-project`
-- package: `kaggle_vibecoding_agents_capstone_project`
-- python: 3.12
+Capstone submission for the **5-Day AI Agents: Intensive Vibe Coding Course with Google**
+(Concierge Agents track). FeasiblePlan plans a day out and **proves it's doable** — a
+deterministic Verifier checks every step against real constraints and a repair loop fixes
+any violations, so the plan you get isn't just *plausible*, it actually works.
 
-## コンペ概要
+- package: `kaggle_vibecoding_agents_capstone_project` · python 3.12
 
-| 項目 | 内容 |
-| --- | --- |
-| コンペ | <https://www.kaggle.com/competitions/vibecoding-agents-capstone-project> |
-| 種別 / 報酬 | Community（hackathon）/ **12 Swag**（各トラック上位3×4） |
-| 締切 | **2026/07/06（月）23:59 PT**（= 07/07 06:59 UTC）。早期提出推奨（draftは審査対象外） |
-| バッジ/証明書 | **Capstone参加者全員**に付与（2026年7月末まで） |
-| 提出形式 | Kaggle **Writeup**（このリポジトリはコード/デモリンク用） |
+## The idea
 
-コースで学んだ**主要コンセプトを3つ以上実証**する、実世界向けAIエージェントを構築する。
+Most AI travel planners hand you a *plausible* itinerary that breaks in the real world:
+a museum that's **closed on Mondays**, an outdoor stop **in the afternoon rain**, a
+transfer with **no time to make it**, a day that's **over budget**. FeasiblePlan splits
+the work so that can't happen:
 
-## 我々の作品: FeasiblePlan（Concierge Agents トラック）
+- A **Planner** (LLM) does the creative part — proposing an interesting day.
+- A **Verifier** (plain, deterministic code) is the source of truth — it checks opening
+  days/hours, weather, travel time, budget and the day window. It never hallucinates.
+- An **Orchestrator** runs a **plan → verify → repair** loop: the Verifier's violations
+  go back to the Planner until the itinerary is feasible.
 
-**"plausibleではなく doable な旅程を出す" 旅行/外出コンシェルジュ。**
-
-差別化の核：多くの旅行エージェントは*もっともらしいが現実に破綻した*旅程を出す（休館・移動不能・雨天の屋外・予算超過）。
-FeasiblePlanは **Verifierエージェント** が各ステップを実データ（営業時間・移動時間・天気・予算）に照合し、
-違反を見つけたら **自動修正（repairループ）** する。だから出てくる旅程は**実際に回せる**。
-
-```
-[Orchestrator]
-  ├─ Profiler/Memory  … 嗜好を長期記憶から読込・更新
-  ├─ Planner          … 候補旅程をドラフト (Gemini)
-  ├─ Recon (Tools/MCP)… Maps MCP / 天気 / Web検索
-  └─ Verifier/Critic  … 制約照合 → 違反検出
-        ↑↓ repair loop（違反があればPlannerへ差し戻し）
-  → 検証済み旅程 ＋「実行可能性レポート」
+```text
+[Orchestrator]              (root agent — owns the control flow)
+  ├─ Profiler / Memory      load long-term preferences
+  ├─ Planner (LLM)          draft an itinerary   ← creativity lives ONLY here
+  ├─ Tools                  weather · places · travel time   (future: Maps MCP)
+  └─ Verifier (code)        check open-days/hours, weather, travel, budget, day-window
+        ↑↓  repair loop: violations → Planner → re-verify  (≤3 iterations)
+  → a verified itinerary + a "feasibility report"
 ```
 
-→ Concierge要件「個人情報を安全に保つ」に合わせ、PII配慮（trajectory eval / human-in-the-loop）を組み込む。
+**Does it work?** Measured across 5 scenarios: a raw planner's plans are feasible **40%**
+of the time; after verify→repair, **100%** — a +60-point lift that reproduces on both
+Gemini and a local model. (See `eval.py`.)
 
-**詳細な設計ドキュメント**（10時間プラン・概念マッピング・writeup骨子）はコース側リポジトリに集約:
-`../kaggle-5-day-ai-agents-intensive-vibecoding-course-with-google/capstone.md`
+## Course concepts demonstrated (≥3 required → six here)
 
-## 提出物・評価（公式）
+- **Multi-agent orchestration (Google ADK)** — Planner is an ADK `LlmAgent`; Orchestrator,
+  Verifier and Profiler are distinct roles (`roles/`).
+- **Tool use** — weather, curated places, travel-time estimator (`tools/`).
+- **Sessions & Memory** — user preferences persist across runs (`memory.py`).
+- **Security & human-in-the-loop** — PII redaction in logs + booking gated behind explicit
+  human approval (`security.py`, `orchestrator.book`).
+- **Evaluation** — the feasibility metric above (`eval.py`).
+- **Deployability** — one-page web UI + single-container `Dockerfile`.
 
-提出物（「New Writeup」→保存→右上「Submit」）:
+No vendor lock-in: the Planner runs on **Gemini**, a **local LLM** (Ollama / LM Studio via
+ADK's `LiteLlm`), or a deterministic **mock** — auto-selected, with safe fallback to the
+mock on any LLM failure, so it can run **completely offline**.
 
-1. **Kaggle Writeup** — トラック選択必須、**2,500語以内**、**カバー画像 必須**
-2. **動画** — Media Galleryに添付、**5分以内・YouTube公開**（必須）
-3. **プロジェクトリンク** — 公開デモURL。無理なら**公開リポジトリ＋詳細セットアップ手順**
-
-**≥3コンセプトの実証（提示場所）**: Antigravity→動画 / Security→コード or 動画 / Deployability→動画 / Agent skills(Agents CLI)→コード or 動画 / ほか multi-agent(ADK)・MCP。
-
-**評価（100点）**: Pitch 30（コンセプト10＋動画10＋Writeup10）＋ Implementation 70（アーキ/コード/agent活用・tool use 50＋残り20）。デプロイは必須でない（加点的）。
-
-## 提出チェックリスト
-
-- [x] コンペに Join
-- [x] トラック決定（**Concierge Agents**）
-- [x] エージェント実装（ADK：orchestrator＋planner(ADK LlmAgent)＋verifier＋profiler）
-- [x] ≥3コンセプトを実証（multi-agent(ADK) / Tool use / Memory / **Security・HITL** / **Eval** / **Deployability**）
-- [x] 公開リポジトリ＋手順（このREADME）＋ **Web UI（FastAPI）＋ Dockerfile（Cloud Run可）**
-- [ ] 5分動画（YouTube）… 台本済 → [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md)（撮影/UP は要作業）
-- [ ] Writeup（≤2,500語・カバー画像）→ **Submit** … 下書き＋カバー済 → [docs/WRITEUP.md](docs/WRITEUP.md) / [docs/cover.png](docs/cover.png)（最終Submit は要作業）
-
-## setup
+## Setup & run
 
 ```bash
 uv sync
+
+# Offline (no key, deterministic mock) — runs end to end:
+uv run python -m kaggle_vibecoding_agents_capstone_project.agent   # plan → verify → repair → booking gate
+uv run python -m kaggle_vibecoding_agents_capstone_project.eval    # BEFORE→AFTER feasibility
+uv run python -m kaggle_vibecoding_agents_capstone_project.web     # web UI at http://localhost:8000
 ```
 
-## 開発（予定）
+To use a real LLM, create a `.env` (gitignored — never commit it; see `.env.example`):
 
-本コンペは**データセットDL不要**（Writeup提出型）。実装は ADK / Agents CLI を用いたエージェントを `src/` 配下に構築する。
+- **Cloud (Gemini):** `GOOGLE_API_KEY=...` — free key from <https://aistudio.google.com/apikey>
+- **Local (Ollama / LM Studio):** `FEASIBLEPLAN_BACKEND=local` + a base URL + a model you've
+  loaded — no key, no quota, fully offline (via ADK's `LiteLlm`).
+
+The Verifier is always deterministic; feasibility never depends on the LLM.
+
+## Web UI & deployment
+
+Click **Plan my day** to see the whole story on one screen: the raw plan's problems (red)
+→ auto-repairs (green) → a verified itinerary with a ✓ feasible badge → a **Confirm & Book**
+human-in-the-loop button.
+
+![FeasiblePlan web UI](docs/ui.png)
+
+HTML and API ship in **one container**, so it deploys as-is (Deployability):
 
 ```bash
-# オフライン（キー不要・mock Planner）で end-to-end 実行
-uv run python -m kaggle_vibecoding_agents_capstone_project.agent
+docker build -t feasibleplan . && docker run -p 8000:8000 feasibleplan   # http://localhost:8000
+# Cloud Run:        gcloud run deploy feasibleplan --source .
+# Hugging Face:     push this repo to a Docker Space (config is in this README's frontmatter)
 ```
 
-実LLM（Gemini via Google ADK）を使う場合は `.env` にキーを置く（gitignore済み・絶対コミットしない）:
+A public deploy defaults to `FEASIBLEPLAN_BACKEND=mock`: no API key, no quota, **no external
+API calls**, no model cost — yet it tells the same verify→repair story and never breaks.
 
-```bash
-cp .env.example .env   # GOOGLE_API_KEY を https://aistudio.google.com/apikey で発行して貼る
-uv run python -m kaggle_vibecoding_agents_capstone_project.agent
-# → 出力1行目が `Planner backend: gemini (gemini-2.5-flash, adk)` になる
-```
+## Submission checklist
 
-Gemini無料枠が尽きた等でクラウドを使いたくない場合は、**ローカルLLM（Ollama / LM Studio）**にも切替可（キー・課金不要・完全オフライン）。ADKの`LiteLlm`経由で接続:
+- [x] Joined the competition · track = **Concierge Agents**
+- [x] Agent implemented (ADK: orchestrator + planner + verifier + profiler)
+- [x] ≥3 concepts (multi-agent · tool use · memory · **security/HITL** · **eval** · **deployability**)
+- [x] Public repo + setup + **web UI (FastAPI) + Dockerfile (Cloud Run / HF Spaces)**
+- [ ] 5-minute video (YouTube) — script ready: [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md)
+- [ ] Writeup (≤2,500 words + cover) → **Submit** — draft ready: [docs/WRITEUP.md](docs/WRITEUP.md), [docs/cover.png](docs/cover.png)
 
-```bash
-ollama pull llama3.2:3b   # 例（7-8Bモデルの方が安定）
-# .env に:  FEASIBLEPLAN_BACKEND=local  /  FEASIBLEPLAN_LLM_MODEL=llama3.2:3b
-uv run python -m kaggle_vibecoding_agents_capstone_project.agent
-# → `Planner backend: local (llama3.2:3b @ http://localhost:11434/v1, adk+litellm)`
-```
+## Links
 
-Planner は **gemini / local / mock** の3バックエンドを自動選択し、LLMが失敗しても**mockに自動フォールバック**（落ちない）。Verifier は常に決定論的で、実行可能性の判定は LLM に依存しない。
-
-## Web UI（デモ画面）
-
-ターミナルだけでなく、同じエージェントを**ブラウザUI**でも動かせます（FastAPI・ビルド工程なし）。
-
-```bash
-uv run python -m kaggle_vibecoding_agents_capstone_project.web
-# → http://localhost:8000 を開く
-```
-
-「Plan my day」で **素案の問題（赤）→ 自動修正（緑）→ ✓ feasible な旅程 → Confirm & Book（HITL）** が一画面で見えます。
-
-![FeasiblePlan Web UI](docs/ui.png)
-
-**Deployability**: HTML＋APIを**1コンテナ**に同梱しているので、そのままデプロイ可能（`Dockerfile` 同梱）:
-
-```bash
-docker build -t feasibleplan . && docker run -p 8000:8000 feasibleplan
-# または Cloud Run:  gcloud run deploy feasibleplan --source .   （$PORT を自動使用）
-```
-
-## リンク
-
-- コンペ: <https://www.kaggle.com/competitions/vibecoding-agents-capstone-project>
-- コース本体（教材/各日ログ/設計doc）: `../kaggle-5-day-ai-agents-intensive-vibecoding-course-with-google/`
-- ADK / Agents CLI / Antigravity は Day 3–5 の codelab 参照
+- Competition: <https://www.kaggle.com/competitions/vibecoding-agents-capstone-project>
+- Writeup draft: [docs/WRITEUP.md](docs/WRITEUP.md) · Video script: [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md)
+- 日本語版 README: [README-ja.md](README-ja.md)
