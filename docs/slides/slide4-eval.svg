@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1f33"/><stop offset="0.55" stop-color="#0d3b4f"/><stop offset="1" stop-color="#0a5c5c"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#27e0a6"/><stop offset="1" stop-color="#34d1f0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+
+  <text x="130" y="160" fill="#7fd9d0" font-size="34" letter-spacing="4" font-weight="600">PROOF, NOT VIBES</text>
+  <text x="126" y="280" fill="#ffffff" font-size="96" font-weight="800" letter-spacing="-2">Feasibility: <tspan fill="#ff8f8f">40%</tspan> → <tspan fill="#27e0a6">100%</tspan></text>
+  <text x="130" y="350" fill="#cfe9e6" font-size="38">5 scenarios (day · weather · budget) — measured before vs. after the loop.</text>
+
+  <!-- BEFORE -->
+  <text x="130" y="540" fill="#ff8f8f" font-size="44" font-weight="700">before</text>
+  <text x="130" y="585" fill="#9fb9b6" font-size="26">raw planner</text>
+  <rect x="430" y="500" width="1180" height="60" rx="30" fill="#13354a"/>
+  <rect x="430" y="500" width="472" height="60" rx="30" fill="#e0556a"/>
+  <text x="1640" y="546" fill="#ff8f8f" font-size="48" font-weight="800">40%</text>
+
+  <!-- AFTER -->
+  <text x="130" y="700" fill="#27e0a6" font-size="44" font-weight="700">after</text>
+  <text x="130" y="745" fill="#9fb9b6" font-size="26">FeasiblePlan</text>
+  <rect x="430" y="660" width="1180" height="60" rx="30" fill="#13354a"/>
+  <rect x="430" y="660" width="1180" height="60" rx="30" fill="url(#bar)"/>
+  <text x="1640" y="706" fill="#27e0a6" font-size="48" font-weight="800">100%</text>
+
+  <text x="130" y="880" fill="#ffffff" font-size="52" font-weight="700">+60 points from verify → repair</text>
+  <text x="130" y="945" fill="#9fc0bd" font-size="32">Reproduces on Gemini <tspan fill="#7fa8b8">and</tspan> a fully local LLM — a capable model still ships</text>
+  <text x="130" y="990" fill="#9fc0bd" font-size="32">broken plans on hard days; the self-verification loop closes the gap.</text>
+</svg>

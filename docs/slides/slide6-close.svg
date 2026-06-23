@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1f33"/><stop offset="0.55" stop-color="#0d3b4f"/><stop offset="1" stop-color="#0a5c5c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+
+  <text x="960" y="430" fill="#ffffff" font-size="150" font-weight="800" letter-spacing="-3" text-anchor="middle">Feasible<tspan fill="#27e0a6">Plan</tspan></text>
+  <text x="960" y="520" fill="#cfe9e6" font-size="48" text-anchor="middle">doable, not just plausible</text>
+
+  <text x="960" y="650" fill="#9fc0bd" font-size="34" text-anchor="middle">A concierge that <tspan fill="#ffffff">proves its plans are runnable</tspan> before handing them to you.</text>
+
+  <text x="960" y="735" fill="#7fd9d0" font-size="30" font-weight="600" text-anchor="middle">code &#160;·&#160; github.com/cncgl/kaggle-vibecoding-agents-capstone-project</text>
+  <text x="960" y="785" fill="#34d1f0" font-size="30" font-weight="600" text-anchor="middle">live demo &#160;·&#160; concigel-feasibleplan.hf.space</text>
+
+  <text x="960" y="895" fill="#7fa8b8" font-size="28" text-anchor="middle">Concierge Agents · 5-Day AI Agents Intensive Vibe Coding with Google</text>
+  <text x="960" y="955" fill="#27e0a6" font-size="32" font-weight="600" text-anchor="middle">Thanks for watching.</text>
+</svg>

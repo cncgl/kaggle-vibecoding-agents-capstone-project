@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1f33"/><stop offset="0.55" stop-color="#0d3b4f"/><stop offset="1" stop-color="#0a5c5c"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#27e0a6"/>
+    </marker>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+
+  <text x="130" y="150" fill="#7fd9d0" font-size="34" letter-spacing="4" font-weight="600">THE IDEA</text>
+  <text x="126" y="250" fill="#ffffff" font-size="78" font-weight="800" letter-spacing="-1">Confine creativity. <tspan fill="#27e0a6">Verify everything.</tspan></text>
+
+  <!-- Orchestrator -->
+  <rect x="710" y="330" width="500" height="92" rx="16" fill="#13354a" stroke="#34d1f0" stroke-width="2"/>
+  <text x="960" y="378" fill="#bfe9ff" font-size="34" font-weight="700" text-anchor="middle">Orchestrator</text>
+  <text x="960" y="406" fill="#7fa8b8" font-size="22" text-anchor="middle">root agent · owns the loop</text>
+
+  <!-- Planner -->
+  <rect x="300" y="560" width="520" height="150" rx="16" fill="#11304a" stroke="#2f6f7e"/>
+  <text x="560" y="618" fill="#ffffff" font-size="36" font-weight="700" text-anchor="middle">Planner — LLM</text>
+  <text x="560" y="662" fill="#27e0a6" font-size="26" text-anchor="middle">creativity (drafts the day)</text>
+  <text x="560" y="694" fill="#7fa8b8" font-size="22" text-anchor="middle">Gemini / local / mock · via ADK</text>
+
+  <!-- Verifier -->
+  <rect x="1100" y="560" width="520" height="150" rx="16" fill="#11304a" stroke="#2f6f7e"/>
+  <text x="1360" y="618" fill="#ffffff" font-size="36" font-weight="700" text-anchor="middle">Verifier — code</text>
+  <text x="1360" y="662" fill="#34d1f0" font-size="26" text-anchor="middle">source of truth (deterministic)</text>
+  <text x="1360" y="694" fill="#7fa8b8" font-size="22" text-anchor="middle">hours · weather · travel · budget · window</text>
+
+  <!-- Orchestrator to Planner/Verifier -->
+  <path d="M820,422 L600,560" stroke="#2f6f7e" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+  <path d="M1100,422 L1320,560" stroke="#2f6f7e" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- repair loop between Planner and Verifier -->
+  <path d="M820,615 L1100,615" stroke="#27e0a6" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <path d="M1100,665 L820,665" stroke="#27e0a6" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <text x="960" y="600" fill="#9fc0bd" font-size="22" text-anchor="middle">draft →</text>
+  <text x="960" y="700" fill="#27e0a6" font-size="22" text-anchor="middle">← violations (repair)</text>
+
+  <!-- tools + memory -->
+  <rect x="300" y="770" width="520" height="86" rx="14" fill="#0f2940" stroke="#2f6f7e"/>
+  <text x="560" y="822" fill="#bcd6d3" font-size="28" text-anchor="middle">Tools: weather · places · travel</text>
+  <rect x="1100" y="770" width="520" height="86" rx="14" fill="#0f2940" stroke="#2f6f7e"/>
+  <text x="1360" y="822" fill="#bcd6d3" font-size="28" text-anchor="middle">Profiler / Memory: preferences</text>
+
+  <text x="960" y="970" fill="#ffffff" font-size="40" font-weight="600" text-anchor="middle">plan → verify → <tspan fill="#27e0a6">repair</tspan>, until it's <tspan fill="#27e0a6">feasible</tspan></text>
+  <text x="960" y="1020" fill="#9fc0bd" font-size="26" text-anchor="middle">The Planner is never told the weather — so it can make a real mistake the Verifier catches.</text>
+</svg>

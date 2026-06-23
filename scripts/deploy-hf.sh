@@ -28,9 +28,9 @@ git diff --quiet && git diff --cached --quiet || {
 git checkout -q main
 git branch -D hf-deploy >/dev/null 2>&1 || true
 
-# Build a clean orphan snapshot of main without the binary PNGs.
+# Build a clean orphan snapshot of main without binaries (HF rejects in-repo binaries).
 git checkout -q --orphan hf-deploy
-git rm -q --cached docs/cover.png docs/ui.png
+git ls-files '*.png' | xargs -r git rm -q --cached
 sed -i "s#(docs/\(cover\|ui\)\.png)#(${RAW}/\1.png)#g" README.md
 git add README.md
 git commit -q -m "HF Spaces deploy snapshot (PNGs via raw GitHub URL; HF rejects in-repo binaries)"

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1f33"/><stop offset="0.55" stop-color="#0d3b4f"/><stop offset="1" stop-color="#0a5c5c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+
+  <text x="130" y="150" fill="#7fd9d0" font-size="34" letter-spacing="4" font-weight="600">UNDER THE HOOD</text>
+  <text x="126" y="250" fill="#ffffff" font-size="80" font-weight="800" letter-spacing="-1">Six concepts, <tspan fill="#27e0a6">no lock-in</tspan></text>
+
+  <!-- concept chips -->
+  <g font-size="34" font-weight="600" text-anchor="middle">
+    <g>
+      <rect x="130" y="340" width="540" height="100" rx="50" fill="#13354a" stroke="#2f6f7e"/>
+      <text x="400" y="402" fill="#bfe9ff">Multi-agent (Google ADK)</text>
+    </g>
+    <g>
+      <rect x="690" y="340" width="540" height="100" rx="50" fill="#13354a" stroke="#2f6f7e"/>
+      <text x="960" y="402" fill="#bfe9ff">Tool use</text>
+    </g>
+    <g>
+      <rect x="1250" y="340" width="540" height="100" rx="50" fill="#13354a" stroke="#2f6f7e"/>
+      <text x="1520" y="402" fill="#bfe9ff">Sessions &amp; Memory</text>
+    </g>
+    <g>
+      <rect x="130" y="470" width="540" height="100" rx="50" fill="#13354a" stroke="#2f6f7e"/>
+      <text x="400" y="532" fill="#bfe9ff">Security + human-in-the-loop</text>
+    </g>
+    <g>
+      <rect x="690" y="470" width="540" height="100" rx="50" fill="#13354a" stroke="#2f6f7e"/>
+      <text x="960" y="532" fill="#bfe9ff">Evaluation (40→100%)</text>
+    </g>
+    <g>
+      <rect x="1250" y="470" width="540" height="100" rx="50" fill="#13354a" stroke="#2f6f7e"/>
+      <text x="1520" y="532" fill="#bfe9ff">Deployability</text>
+    </g>
+  </g>
+
+  <!-- no lock-in -->
+  <rect x="130" y="650" width="1660" height="120" rx="16" fill="#0f3a32" stroke="#1c6b56"/>
+  <text x="170" y="700" fill="#c9f7e8" font-size="30" font-weight="700">No vendor lock-in</text>
+  <text x="170" y="744" fill="#bcd6d3" font-size="30">same agent on <tspan fill="#ffffff">Gemini</tspan> · <tspan fill="#ffffff">local (Ollama / LM Studio)</tspan> · <tspan fill="#ffffff">offline mock</tspan> — safe fallback, never crashes</text>
+
+  <!-- deployed -->
+  <text x="130" y="880" fill="#ffffff" font-size="44" font-weight="700">…and it's already deployed</text>
+  <text x="130" y="940" fill="#9fc0bd" font-size="32">live on Hugging Face (mock) — public demo needs no keys, makes no external calls, never breaks.</text>
+</svg>

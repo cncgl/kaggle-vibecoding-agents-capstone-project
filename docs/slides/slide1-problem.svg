@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1f33"/><stop offset="0.55" stop-color="#0d3b4f"/><stop offset="1" stop-color="#0a5c5c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+
+  <text x="130" y="170" fill="#7fd9d0" font-size="34" letter-spacing="4" font-weight="600">THE PROBLEM</text>
+  <text x="126" y="290" fill="#ffffff" font-size="104" font-weight="800" letter-spacing="-2">Plausible <tspan fill="#9fc0bd">≠</tspan> <tspan fill="#27e0a6">Doable</tspan></text>
+  <text x="130" y="360" fill="#cfe9e6" font-size="40">A "nice" AI itinerary that breaks in the real world.</text>
+
+  <!-- mock itinerary card -->
+  <g>
+    <rect x="130" y="430" rx="18" width="900" height="500" fill="#11304a" stroke="#2f6f7e"/>
+    <text x="170" y="495" fill="#9fc0bd" font-size="28" font-weight="600">A DAY IN KYOTO — by a normal AI</text>
+    <g font-size="34" fill="#eaf6f4">
+      <text x="170" y="570">9:30   Kyoto National Museum</text>
+      <text x="170" y="650">12:00  Nishiki Market</text>
+      <text x="170" y="730">14:00  Botanical Garden</text>
+      <text x="170" y="810">18:30  Pontocho Dinner</text>
+    </g>
+  </g>
+
+  <!-- red rejection stamps -->
+  <g font-weight="800" font-size="30" text-anchor="middle">
+    <g transform="rotate(-8 1300 560)">
+      <rect x="1150" y="528" width="300" height="62" rx="8" fill="none" stroke="#e0556a" stroke-width="4"/>
+      <text x="1300" y="570" fill="#ff8f8f">CLOSED MONDAY</text>
+    </g>
+    <g transform="rotate(6 1480 660)">
+      <rect x="1350" y="628" width="260" height="62" rx="8" fill="none" stroke="#e0556a" stroke-width="4"/>
+      <text x="1480" y="670" fill="#ff8f8f">RAINING 3PM</text>
+    </g>
+    <g transform="rotate(-5 1300 770)">
+      <rect x="1120" y="738" width="360" height="62" rx="8" fill="none" stroke="#e0556a" stroke-width="4"/>
+      <text x="1300" y="780" fill="#ff8f8f">NO TIME TO TRANSFER</text>
+    </g>
+    <g transform="rotate(7 1500 875)">
+      <rect x="1380" y="843" width="250" height="62" rx="8" fill="none" stroke="#e0556a" stroke-width="4"/>
+      <text x="1505" y="885" fill="#ff8f8f">OVER BUDGET</text>
+    </g>
+  </g>
+
+  <text x="130" y="1010" fill="#9fc0bd" font-size="32">It was <tspan fill="#ff8f8f" font-weight="700">plausible</tspan>. It just wasn't <tspan fill="#27e0a6" font-weight="700">doable</tspan>.</text>
+</svg>
