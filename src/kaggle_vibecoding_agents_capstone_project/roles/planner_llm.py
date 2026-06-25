@@ -309,13 +309,14 @@ def _retry_wait(exc: Exception) -> float | None:
 # Local (Ollama/LM Studio) models don't get ADK's `output_schema` constraint, so we
 # spell out the JSON shape and parse defensively instead.
 _JSON_SHAPE_INSTRUCTION = (
-    "Output ONLY a single JSON object and nothing else — no prose, no markdown "
-    "fences, no <think> reasoning. Begin your reply with '{' and end with '}'. "
-    "The top-level value MUST be an object with keys \"steps\" and \"changes\" "
-    "(do NOT return a bare array or a single step). "
-    'Exact shape: {"steps": [{"place_id": "<an id from the candidate list>", '
+    "/no_think\n"
+    "Do NOT write any analysis, reasoning, or 'thinking process'. Your entire reply "
+    "must be ONE JSON object and nothing else — no prose, no markdown fences, no "
+    "<think>. Start at '{' and end at '}'. Top-level keys MUST be \"steps\" and "
+    '"changes" (not a bare array, not a single step). '
+    'Shape: {"steps": [{"place_id": "<an id from the candidate list>", '
     '"start_hour": 9.5, "duration_h": 1.5}], "changes": ["<short note per fix>"]}. '
-    "Use 2-4 steps. `changes` may be an empty list for a fresh draft. /no_think"
+    "Use 2-4 steps; `changes` may be an empty list."
 )
 
 
@@ -347,8 +348,10 @@ async def _run_async(instruction: str, prompt: str) -> _PlanResult:
     model, use_schema = _build_model()
     kwargs = {"output_schema": _PlanResult, "output_key": "plan"} if use_schema else {}
     instr = instruction if use_schema else f"{instruction}\n\n{_JSON_SHAPE_INSTRUCTION}"
-    # Low temperature for stable JSON; generous token budget so the JSON isn't truncated.
-    config = types.GenerateContentConfig(temperature=0.2, max_output_tokens=2048)
+    user_text = prompt if use_schema else f"{prompt}\n\n/no_think Return ONLY the JSON object."
+    # Low temperature for stable JSON; large token budget so even a chatty/thinking
+    # local model still reaches and completes the JSON.
+    config = types.GenerateContentConfig(temperature=0.2, max_output_tokens=4096)
 
     agent = LlmAgent(
         name="planner", model=model, instruction=instr, generate_content_config=config, **kwargs
@@ -356,34 +359,50 @@ async def _run_async(instruction: str, prompt: str) -> _PlanResult:
     runner = InMemoryRunner(agent=agent, app_name=_APP)
     await runner.session_service.create_session(app_name=_APP, user_id=_USER, session_id=_SESSION)
 
-    message = types.Content(role="user", parts=[types.Part(text=prompt)])
-    final_text = ""
+    message = types.Content(role="user", parts=[types.Part(text=user_text)])
+    texts: list[str] = []
     async for event in runner.run_async(
         user_id=_USER, session_id=_SESSION, new_message=message
     ):
         if event.content and event.content.parts:
             for part in event.content.parts:
                 if getattr(part, "text", None):
-                    final_text = part.text
+                    texts.append(part.text)
 
-    return _PlanResult.model_validate(_coerce_plan(_first_json_value(final_text)))
+    final_text = texts[-1] if texts else ""
+    if os.environ.get("FEASIBLEPLAN_DEBUG_RAW"):
+        _log.warning("RAW: %d part(s), last len=%d", len(texts), len(final_text))
+        _log.warning("RAW FULL: %r", final_text[:4000])
+
+    return _PlanResult.model_validate(_extract_plan(final_text))
 
 
-def _first_json_value(text: str):
-    """Extract the first complete JSON value (object or array) from a model response.
+def _extract_plan(text: str) -> dict:
+    """Find the best JSON plan in a model response.
 
-    Tolerates chain-of-thought (<think> blocks), markdown fences, leading prose,
-    and trailing characters after the value (raw_decode stops at its end).
+    Scans every '{'/'[' position, decodes the JSON value there, and keeps the richest
+    valid plan (most steps). This tolerates chain-of-thought prose, markdown fences,
+    trailing text, and — crucially — stray brackets like `[closed]` that appear when a
+    model echoes the violations before (or instead of) the real JSON.
     """
 
     t = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE)
     t = re.sub(r"<think>.*$", "", t, flags=re.DOTALL | re.IGNORECASE)  # unclosed/truncated
-    t = _strip_fences(t)
-    m = re.search(r"[\[{]", t)
-    if m is None:
-        raise ValueError("no JSON value in model output")
-    value, _ = json.JSONDecoder().raw_decode(t[m.start() :])
-    return value
+    dec = json.JSONDecoder()
+    best: dict | None = None
+    for m in re.finditer(r"[\[{]", t):
+        try:
+            value, _ = dec.raw_decode(t[m.start() :])
+        except json.JSONDecodeError:
+            continue  # stray bracket (e.g. `[closed]`) or partial JSON — skip
+        plan = _coerce_plan(value)
+        steps = plan.get("steps") if isinstance(plan, dict) else None
+        if isinstance(steps, list) and steps and all(isinstance(s, dict) for s in steps):
+            if best is None or len(steps) > len(best["steps"]):
+                best = plan  # prefer the full itinerary over a single-step example
+    if best is None:
+        raise ValueError("no usable JSON plan in model output")
+    return best
 
 
 def _coerce_plan(value) -> dict:
@@ -401,14 +420,6 @@ def _coerce_plan(value) -> dict:
         if "place_id" in value:  # a single bare step
             return {"steps": [value], "changes": []}
     return value  # leave anything else for pydantic to reject with a clear error
-
-
-def _strip_fences(text: str) -> str:
-    t = text.strip()
-    if t.startswith("```"):
-        t = t.split("\n", 1)[1] if "\n" in t else t
-        t = t.rsplit("```", 1)[0]
-    return t.strip()
 
 
 def _to_itinerary(
