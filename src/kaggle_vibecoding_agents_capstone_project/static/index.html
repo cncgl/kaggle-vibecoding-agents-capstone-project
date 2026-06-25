@@ -56,6 +56,11 @@
   .total{margin-top:10px;font-size:18px;font-weight:700}
   .book{margin-top:18px;border-top:1px dashed var(--line);padding-top:16px}
   .ok-msg{color:var(--green);font-weight:700;margin-top:10px}
+  .booked{margin-top:12px;background:#0f3a32;border:1px solid #1c6b56;border-radius:12px;padding:14px 16px}
+  .booked .big{color:var(--green);font-size:22px;font-weight:800}
+  .booked .sub{color:#c9f7e8;font-size:14px;margin-top:6px}
+  .booked .red{color:var(--red);text-decoration:line-through}
+  .booked .ok{color:var(--cyan);font-weight:700}
   .spin{color:var(--mut)}
   .empty{color:var(--mut);text-align:center;padding:40px 10px}
   .hide{display:none}
@@ -217,18 +222,33 @@ function render(d){
 
 async function book(){
   $('bookBtn').disabled = true;
-  const body = { steps: lastSteps, traveler_contact: $('contact').value };
+  const contact = $('contact').value;
+  const body = { steps: lastSteps, traveler_contact: contact };
   const r = await fetch('/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const d = await r.json();
-  $('bookMsg').textContent = d.booked ? '✓ Booked. (Human approved — contact was redacted in server logs.)'
-                                      : '✗ Booking declined.';
+  if(d.booked){
+    $('bookMsg').innerHTML =
+      '<div class="booked">'+
+      '<div class="big">✓ Booked — approved by you</div>'+
+      '<div class="sub">Human-in-the-loop: the agent never books on its own — it waited for your confirm.</div>'+
+      '<div class="sub">PII protected: <span class="red">'+esc(contact)+'</span> → logged as '+
+      '<span class="ok">'+esc(d.redacted_contact||'[redacted]')+'</span></div>'+
+      '</div>';
+  } else {
+    $('bookMsg').textContent = '✗ Booking declined.';
+  }
 }
 
 function fmt(h){ const hh=Math.floor(h), mm=Math.round((h-hh)*60); return hh+':'+String(mm).padStart(2,'0'); }
 function esc(s){ return String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-// Deep-link: /?auto=1 runs a plan on load (handy for demos & screenshots).
-if(new URLSearchParams(location.search).has('auto')){ window.addEventListener('load', plan); }
+// Deep-link: /?auto=1 runs a plan on load; add &book=1 to also confirm booking.
+{
+  const q = new URLSearchParams(location.search);
+  if(q.has('auto')){
+    window.addEventListener('load', async () => { await plan(); if(q.has('book')) await book(); });
+  }
+}
 </script>
 </body>
 </html>

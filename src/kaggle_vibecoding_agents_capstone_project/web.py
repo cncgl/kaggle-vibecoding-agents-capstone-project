@@ -18,6 +18,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
+from . import security
 from .models import Itinerary, ItineraryStep, Place, TripRequest, UserPreferences
 from .roles import orchestrator, planner_llm
 from .tools import places as places_tool
@@ -77,7 +78,7 @@ def book(req: BookRequest) -> dict:
     booked = orchestrator.book(
         itinerary, places, approver=lambda _summary: True, traveler_contact=req.traveler_contact
     )
-    return {"booked": booked}
+    return {"booked": booked, "redacted_contact": security.redact(req.traveler_contact)}
 
 
 def _serialize(itinerary: Itinerary, report, places: dict[str, Place]) -> dict:
