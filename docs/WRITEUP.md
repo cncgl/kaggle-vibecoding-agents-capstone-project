@@ -1,7 +1,7 @@
 # FeasiblePlan — a travel concierge that returns itineraries you can *actually run*
 
 > **Track:** Concierge Agents · **Author:** cncgl (concigel@gmail.com)
-> **Repo:** https://github.com/cncgl/kaggle-vibecoding-agents-capstone-project · **Video:** (paste YouTube link)
+> **Repo:** https://github.com/cncgl/kaggle-vibecoding-agents-capstone-project · **Video:** https://www.youtube.com/watch?v=iZKr5ak4n2I · **Live demo:** https://concigel-feasibleplan.hf.space
 > **Cover image:** `docs/cover.svg` (export to PNG)
 
 ## The problem: plausible ≠ doable
