@@ -105,11 +105,13 @@ API calls**, no model cost — yet it tells the same verify→repair story and n
 - [x] Agent implemented (ADK: orchestrator + planner + verifier + profiler)
 - [x] ≥3 concepts (multi-agent · tool use · memory · **security/HITL** · **eval** · **deployability**)
 - [x] Public repo + setup + **web UI (FastAPI) + Dockerfile (Cloud Run / HF Spaces)**
-- [ ] 5-minute video (YouTube) — script ready: [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md)
-- [ ] Writeup (≤2,500 words + cover) → **Submit** — draft ready: [docs/WRITEUP.md](docs/WRITEUP.md), [docs/cover.png](docs/cover.png)
+- [x] 5-minute video (YouTube): <https://www.youtube.com/watch?v=iZKr5ak4n2I>
+- [x] **Submitted** — Writeup (≤2,500 words + cover) on Kaggle ✅
 
 ## Links
 
 - Competition: <https://www.kaggle.com/competitions/vibecoding-agents-capstone-project>
-- Writeup draft: [docs/WRITEUP.md](docs/WRITEUP.md) · Video script: [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md)
+- Submitted Writeup: <https://www.kaggle.com/competitions/vibecoding-agents-capstone-project/writeups/feasibleplan-itineraries-you-can-actually-run>
+- Live demo: <https://concigel-feasibleplan.hf.space> · Video: <https://www.youtube.com/watch?v=iZKr5ak4n2I>
+- Writeup source: [docs/WRITEUP.md](docs/WRITEUP.md) · Video script: [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md)
 - 日本語版 README: [README-ja.md](README-ja.md)

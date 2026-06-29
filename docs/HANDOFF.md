@@ -1,6 +1,13 @@
 # HANDOFF — FeasiblePlan（次セッション用の引き継ぎ）
 
-最終更新: 2026-06-21 / 作業者メモ。別セッションで続きをやるための「構想」と「現状」。
+最終更新: 2026-06-29 / 作業者メモ。別セッションで続きをやるための「構想」と「現状」。
+
+> ✅ **提出済み（2026-06-29）**。Kaggle Writeup を Submit 完了（締切 2026-07-06 より前）。
+> - Writeup: <https://www.kaggle.com/competitions/vibecoding-agents-capstone-project/writeups/feasibleplan-itineraries-you-can-actually-run>
+> - 動画(YouTube公開): <https://www.youtube.com/watch?v=iZKr5ak4n2I>
+> - 公開デモ(HF Spaces, mock固定): <https://concigel-feasibleplan.hf.space>
+> - 公開リポ: <https://github.com/cncgl/kaggle-vibecoding-agents-capstone-project>
+> 締切までは Writeup の編集可。残タスクは任意のブラッシュアップのみ（必須作業なし）。
 
 ## 1. 構想（何を作るか・なぜ勝てるか）
 
