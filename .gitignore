@@ -21,3 +21,7 @@ data/processed/
 models/
 logs/
 .ipynb_checkpoints/
+
+# large media (the demo video lives on YouTube, not in git / HF)
+*.mp4
+*.mov
